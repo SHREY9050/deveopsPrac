@@ -1,0 +1,33 @@
+# Converting as csv file
+---
+- name: Generate report
+  hosts: all
+  vars: 
+    header: |
+      HOSTNAME,OS,IP_ADDRESS,RAM_MB 
+    report: |                                        # This is report var holding multi-line values
+      {{ansible_hostname}},{{ansible_distribution}} {{ansible_distribution_release}} {{ansible_distribution_version}},{{ansible_default_ipv4.address}},{{ansible_memtotal_mb}}
+  tasks: 
+    - name: create report using copy module
+      copy:
+        content: "{{ report }}"
+        dest: "/tmp/{{ ansible_hostname }}.csv"
+    - name: fetch to control node
+      fetch:
+        src: "/tmp/{{ ansible_hostname }}.csv"
+        dest: /tmp/reports/
+        flat: true
+    - name: use shell module on control node
+      shell: cat /tmp/reports/* > /tmp/master_report.csv
+      delegate_to: localhost                     # TO RUN COMMAND ON CONTROL Node
+      run_once: true     # here hosts: all means 3 servers so each tasks run 3 times,but for this tasks we need it to run only once
+    - name: create new file with header
+      copy:
+        content: "{{ header }}"
+        dest: /tmp/reports/report.csv
+      delegate_to: localhost
+      run_once: true 
+    - name: merge files
+      shell: cat /tmp/master_report.csv >> /tmp/reports/report.csv
+      delegate_to: localhost
+      run_once: true 
