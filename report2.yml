@@ -31,3 +31,7 @@
       shell: cat /tmp/master_report.csv >> /tmp/reports/report.csv
       delegate_to: localhost
       run_once: true 
+    - name: using shell module to merge files
+      shell: cat /tmp/master_report.csv >> /tmp/reports/report.csv
+      delegate_to: localhost
+      run_once: true 
